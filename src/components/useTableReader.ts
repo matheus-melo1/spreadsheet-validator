@@ -36,6 +36,7 @@ export const useTableReader = <T extends ZodRawShape>(
         code: ErrorCode.COLUMN_NOT_EXISTS,
         message: `column ${header} not exists in schema`,
         column: header,
+        rowIndex: null,
         path: [null, header],
       };
     })
@@ -46,6 +47,7 @@ export const useTableReader = <T extends ZodRawShape>(
       return {
         ...issue,
         column: issue.path[1],
+        rowIndex: issue.path[0],
       };
     },
   );

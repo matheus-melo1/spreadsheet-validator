@@ -1,17 +1,24 @@
 import { useMemo } from "react";
 import styles from "./TableReader.module.css";
 import { useTableReader } from "./useTableReader";
-import { ZodObject, ZodRawShape } from "zod";
+import z, { ZodObject, ZodRawShape } from "zod";
 import { ErrorLog } from "../types/errorLog.type";
+import InfoIcon from "./InfoIcon";
+
+type InferFields<T extends ZodRawShape> = z.infer<ZodObject<T>>;
 
 export interface TableReaderProps<T extends ZodRawShape> {
   file: File | null;
   schema?: ZodObject<T>;
   errorIssuesLog?: (error: ErrorLog[] | undefined) => void;
+  columnInfo?: {
+    name: keyof T;
+    message: string;
+  }[];
 }
 
 export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
-  const { file, schema } = props;
+  const { file, schema, columnInfo } = props;
 
   const typeFiles = [
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -47,6 +54,9 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                   const isColumnNotExists = schema?.shape[header]
                     ? false
                     : true;
+                  const isColumnSelected = columnInfo?.find(
+                    (column) => column.name === header,
+                  );
 
                   return (
                     <th
@@ -56,7 +66,10 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                         backgroundColor: isColumnNotExists ? "#e62517" : "",
                       }}
                     >
-                      {header}
+                      <div className={styles.th_content}>
+                        {header}
+                        {isColumnSelected && <InfoIcon />}
+                      </div>
                     </th>
                   );
                 })}
@@ -78,7 +91,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                     const errorHeader = errorIssues?.find(
                       (issue) =>
                         issue.column === header &&
-                        issue.path[0] === row.__rowNum__,
+                        issue.rowIndex === row.__rowNum__,
                     );
 
                     return (

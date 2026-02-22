@@ -31,6 +31,12 @@
   white-space: nowrap;
 }
 
+.th_content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
 .tbody {
   background-color: white;
 }
