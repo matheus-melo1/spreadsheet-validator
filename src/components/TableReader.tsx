@@ -1,11 +1,9 @@
 import { useMemo } from "react";
 import styles from "./TableReader.module.css";
 import { useTableReader } from "./useTableReader";
-import z, { ZodObject, ZodRawShape } from "zod";
+import { ZodObject, ZodRawShape } from "zod";
 import { ErrorLog } from "../types/errorLog.type";
 import InfoIcon from "./InfoIcon";
-
-type InferFields<T extends ZodRawShape> = z.infer<ZodObject<T>>;
 
 export interface TableReaderProps<T extends ZodRawShape> {
   file: File | null;
@@ -39,7 +37,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
     );
   }
 
-  const { data, headers, dataError, errorIssues, onCellChange } =
+  const { data, headers, dataError, errorIssues, onCellChange, renderValue } =
     useTableReader(props);
 
   return (
@@ -68,7 +66,14 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                     >
                       <div className={styles.th_content}>
                         {header}
-                        {isColumnSelected && <InfoIcon />}
+                        {isColumnSelected && (
+                          <div
+                            className={styles.tooltip}
+                            data-tooltip={isColumnSelected.message}
+                          >
+                            <InfoIcon />
+                          </div>
+                        )}
                       </div>
                     </th>
                   );
@@ -98,7 +103,15 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                       <td key={`${rowIndex}-${header}`} className={styles.td}>
                         <input
                           type="text"
-                          value={row[header] != null ? String(row[header]) : ""}
+                          value={
+                            row[header] != null
+                              ? (renderValue(
+                                  row[header],
+                                  header,
+                                  "visual",
+                                ) as string)
+                              : ""
+                          }
                           onChange={(e) =>
                             onCellChange?.(rowIndex, header, e.target.value)
                           }
@@ -125,7 +138,15 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                       <td key={`${rowIndex}-${header}`} className={styles.td}>
                         <input
                           type="text"
-                          value={row[header] != null ? String(row[header]) : ""}
+                          value={
+                            row[header] != null
+                              ? (renderValue(
+                                  row[header],
+                                  header,
+                                  "visual",
+                                ) as string)
+                              : ""
+                          }
                           onChange={(e) =>
                             onCellChange?.(rowIndex, header, e.target.value)
                           }

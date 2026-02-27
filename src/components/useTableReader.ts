@@ -1,9 +1,9 @@
-import React, { useEffect, useMemo } from "react";
+import React, { useEffect } from "react";
 import * as XLSX from "xlsx";
-import { ZodRawShape, z } from "zod";
-import { ErrorLog } from "../types/errorLog.type";
+import { ZodDate, type ZodRawShape, z } from "zod";
 import { TableReaderProps } from "./TableReader";
-import { ErrorCode } from "../types/enum/errorCode.enum";
+import { formatDate } from "../utils/formatDate";
+import { useTableValidator } from "./useTableValidator";
 
 interface ExcelData {
   [key: string]: string | number;
@@ -18,64 +18,8 @@ export const useTableReader = <T extends ZodRawShape>(
   const [data, setData] = React.useState<ExcelData[]>([]);
   const [headers, setHeaders] = React.useState<string[]>([]);
 
-  const onValidationSchema = () => {
-    if (!schema) return;
-
-    return z.array(z.object(schema.shape)).safeParse(data);
-  };
-
-  const validation = onValidationSchema();
-
-  const isColumnNotExists = headers
-    ?.map((header) => {
-      const isHeaderExists = schema?.shape[header] ? true : false;
-
-      if (isHeaderExists) return;
-
-      return {
-        code: ErrorCode.COLUMN_NOT_EXISTS,
-        message: `column ${header} not exists in schema`,
-        column: header,
-        rowIndex: null,
-        path: [null, header],
-      };
-    })
-    .filter((issue) => issue !== undefined);
-
-  const validationIssuesFormatted = (validation?.error?.issues ?? []).map(
-    (issue) => {
-      return {
-        ...issue,
-        column: issue.path[1],
-        rowIndex: issue.path[0],
-      };
-    },
-  );
-
-  const errorIssues = [...validationIssuesFormatted, ...isColumnNotExists];
-
-  const errorIssueMatch = (rowNum: number) =>
-    errorIssues?.some((issue) => issue?.path[0] === rowNum);
-
-  const dataError = useMemo(
-    () =>
-      errorIssues && errorIssues.length > 0
-        ? data.filter((row) => errorIssueMatch(row.__rowNum__))
-        : [],
-    [errorIssues, data],
-  );
-
-  const dataFiltered = useMemo(
-    () =>
-      errorIssues && errorIssues.length > 0
-        ? data.filter((row) => !errorIssueMatch(row.__rowNum__))
-        : data,
-    [errorIssues, data],
-  );
-
-  const onSetErrorIssuesLog = () => {
-    errorIssuesLog?.(errorIssues as ErrorLog[]);
-  };
+  const { dataFiltered, dataError, onSetErrorIssuesLog, errorIssues } =
+    useTableValidator({ data, headers, schema, errorIssuesLog });
 
   const isDateReturn = (value: number) => {
     const jsDate = XLSX.SSF.parse_date_code(value);
@@ -83,17 +27,24 @@ export const useTableReader = <T extends ZodRawShape>(
     return new Date(jsDate.y, jsDate.m - 1, jsDate.d);
   };
 
-  const actionValue = (
+  const renderValue = (
     val: string | number | undefined,
     header: string,
-    isDate: boolean,
+    type: "visual" | "data",
   ) => {
-    headers;
-    if (isDate) {
-      return typeof val === "number" ? isDateReturn(val) : val;
+    const field = schema?.shape[header];
+
+    if (field instanceof ZodDate) {
+      if (type === "visual") {
+        return typeof val === "number"
+          ? formatDate(isDateReturn(val), "DD/MM/YYYY")
+          : String(val ?? "");
+      }
+
+      return isDateReturn(val as number);
     }
 
-    return val;
+    return val ?? "";
   };
 
   const onProcessingFile = () => {
@@ -110,14 +61,13 @@ export const useTableReader = <T extends ZodRawShape>(
       const headers = Object.keys(jsonData[0]);
 
       const jsonForm = jsonData.map((row, index) => {
-        const mappedRow = { ...row, __rowNum__: index } as ExcelData & {
-          __rowNum__: number;
-        };
+        const mappedRow = { ...row, __rowNum__: index } as ExcelData;
 
         for (const header of headers) {
           const value = row[header];
-          const isDate = header.includes("Data");
-          mappedRow[header] = actionValue(value, header, isDate);
+          mappedRow[header] = renderValue(value, header, "data") as
+            | string
+            | number;
         }
 
         return mappedRow;
@@ -157,5 +107,6 @@ export const useTableReader = <T extends ZodRawShape>(
     dataError,
     errorIssues,
     onCellChange,
+    renderValue,
   };
 };
