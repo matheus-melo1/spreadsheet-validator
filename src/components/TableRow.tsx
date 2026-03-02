@@ -30,20 +30,17 @@ export const TableRow = memo(function TableRow({
   return (
     <tr
       className={styles.tr}
-      style={{
-        ...style,
-        display: "flex",
-        position: "absolute",
-        width: "100%",
-      }}
+      style={style}
     >
       <td
         className={styles.tdIndex}
         style={{
-          minWidth: "64px",
           color: isErrorRow ? "red" : styleTable?.textColor || "",
           backgroundColor: styleTable?.backgroundColor || "",
-          border: styleTable?.borderColor
+          borderRight: styleTable?.borderColor
+            ? `1px solid ${styleTable.borderColor}`
+            : "",
+          borderBottom: styleTable?.borderColor
             ? `1px solid ${styleTable.borderColor}`
             : "",
         }}
@@ -58,12 +55,11 @@ export const TableRow = memo(function TableRow({
             className={`${styles.td} ${error ? styles.cellError : ""}`}
             title={error?.message || undefined}
             style={{
-              flex: 1,
-              minWidth: "12rem",
-              padding: "0.75rem 1rem",
-              fontSize: "0.875rem",
               color: styleTable?.textColor || "",
-              border: styleTable?.borderColor
+              borderRight: styleTable?.borderColor
+                ? `1px solid ${styleTable.borderColor}`
+                : "",
+              borderBottom: styleTable?.borderColor
                 ? `1px solid ${styleTable.borderColor}`
                 : "",
               backgroundColor: error ? "rgba(230, 37, 23, 0.3)" : "",

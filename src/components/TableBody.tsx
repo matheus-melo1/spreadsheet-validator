@@ -2,6 +2,7 @@ import { useRef } from "react";
 import styles from "./TableReader.module.css";
 import { useVirtualScroll, type VirtualItem } from "./useVirtualScroll";
 import { TableRow } from "./TableRow";
+import { TableHeader } from "./TableHeader";
 import type { ErrorLog } from "../types/errorLog.type";
 import type { SpreadSheetData } from "../types/spreadSheetData.type";
 import type { StyleTable } from "../types/styleTable.type";
@@ -11,6 +12,8 @@ interface TableBodyProps {
   errorRowCount: number;
   headers: string[];
   errorMap: Map<number, Map<string, ErrorLog>>;
+  schemaKeys: Set<string>;
+  columnInfo?: { name: string; message: string }[];
   styleTable?: StyleTable;
   rowHeight: number;
   overscan: number;
@@ -27,6 +30,8 @@ export function TableBody({
   errorRowCount,
   headers,
   errorMap,
+  schemaKeys,
+  columnInfo,
   styleTable,
   rowHeight,
   overscan,
@@ -49,19 +54,39 @@ export function TableBody({
       style={{
         ...containerProps.style,
         height: containerHeight,
+        overflow: "auto",
       }}
     >
-      <table style={{ display: "grid" }}>
+      <table
+        className={styles.table}
+        style={{ tableLayout: "fixed" }}
+      >
+        <colgroup>
+          <col style={{ width: "64px" }} />
+          {headers.map((header) => (
+            <col key={header} style={{ width: "200px" }} />
+          ))}
+        </colgroup>
+        <TableHeader
+          headers={headers}
+          schemaKeys={schemaKeys}
+          columnInfo={columnInfo}
+          styleTable={styleTable}
+        />
         <tbody
           className={styles.tbody}
           style={{
-            display: "grid",
-            height: totalHeight,
-            position: "relative",
             backgroundColor: styleTable?.backgroundColor || "",
             fontFamily: styleTable?.fontFamilyTable || "",
           }}
         >
+          {/* Spacer row to create total scroll height */}
+          <tr style={{ height: 0, visibility: "hidden", lineHeight: 0 }}>
+            <td
+              colSpan={headers.length + 1}
+              style={{ height: totalHeight, padding: 0, border: "none" }}
+            />
+          </tr>
           {virtualItems.map((virtualItem: VirtualItem) => {
             const row = allRows[virtualItem.index];
             if (!row) return null;
@@ -75,7 +100,12 @@ export function TableBody({
                 headers={headers}
                 rowErrors={rowErrors}
                 isErrorRow={isErrorRow}
-                style={{ transform: `translateY(${virtualItem.start}px)` }}
+                style={{
+                  position: "absolute",
+                  top: virtualItem.start,
+                  height: rowHeight,
+                  width: "100%",
+                }}
                 styleTable={styleTable}
                 renderValue={renderValue}
               />

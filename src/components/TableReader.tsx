@@ -4,7 +4,6 @@ import { useTableReader } from "./useTableReader";
 import { ZodObject, ZodRawShape } from "zod";
 import { ErrorLog } from "../types/errorLog.type";
 import { StyleTable } from "../types/styleTable.type";
-import { TableHeader } from "./TableHeader";
 import { TableBody } from "./TableBody";
 
 export interface TableReaderProps<T extends ZodRawShape> {
@@ -77,19 +76,13 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
         flexDirection: "column",
       }}
     >
-      <table style={{ display: "grid" }}>
-        <TableHeader
-          headers={headers}
-          schemaKeys={schemaKeys}
-          columnInfo={columnInfo as { name: string; message: string }[]}
-          styleTable={styleTable}
-        />
-      </table>
       <TableBody
         allRows={allRows}
         errorRowCount={dataError.length}
         headers={headers}
         errorMap={errorMap}
+        schemaKeys={schemaKeys}
+        columnInfo={columnInfo as { name: string; message: string }[]}
         styleTable={styleTable}
         rowHeight={rowHeight}
         overscan={overscan}

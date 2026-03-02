@@ -25,7 +25,6 @@ export const TableHeader = memo(function TableHeader({
     <thead
       className={styles.thead}
       style={{
-        display: "grid",
         position: "sticky",
         top: 0,
         zIndex: 10,
@@ -33,7 +32,7 @@ export const TableHeader = memo(function TableHeader({
         fontFamily: styleTable?.fontFamilyHeader || "",
       }}
     >
-      <tr style={{ display: "flex", width: "100%" }}>
+      <tr>
         <th className={styles.th} style={{ minWidth: "64px" }}>
           #
         </th>
@@ -48,7 +47,6 @@ export const TableHeader = memo(function TableHeader({
               key={header}
               className={styles.th}
               style={{
-                flex: 1,
                 minWidth: "12rem",
                 backgroundColor: isColumnNotExists ? "#d9041a" : "",
                 borderLeft: styleTable?.borderColor
