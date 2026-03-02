@@ -70,6 +70,17 @@ export const useTableValidator = <T extends ZodRawShape>(
     [errorIssues, data],
   );
 
+  const errorMap = useMemo(() => {
+    const map = new Map<number, Map<string, ErrorLog>>();
+    errorIssues.forEach((err) => {
+      const rowIdx = err.rowIndex;
+      if (rowIdx == null || typeof rowIdx !== "number") return;
+      if (!map.has(rowIdx)) map.set(rowIdx, new Map());
+      map.get(rowIdx)!.set(String(err.column), err as ErrorLog);
+    });
+    return map;
+  }, [errorIssues]);
+
   const onSetErrorIssuesLog = () => {
     errorIssuesLog?.(errorIssues as ErrorLog[]);
   };
@@ -79,5 +90,6 @@ export const useTableValidator = <T extends ZodRawShape>(
     dataError,
     onSetErrorIssuesLog,
     errorIssues,
+    errorMap,
   };
 };
