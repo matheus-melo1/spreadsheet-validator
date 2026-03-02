@@ -1,6 +1,6 @@
 import React, { useEffect } from "react";
 import * as XLSX from "xlsx";
-import { ZodDate, type ZodRawShape, z } from "zod";
+import { ZodDate, type ZodRawShape } from "zod";
 import { TableReaderProps } from "./TableReader";
 import { formatDate } from "../utils/formatDate";
 import { useTableValidator } from "./useTableValidator";
@@ -14,7 +14,7 @@ export const useTableReader = <T extends ZodRawShape>(
   const [data, setData] = React.useState<SpreadSheetData[]>([]);
   const [headers, setHeaders] = React.useState<string[]>([]);
 
-  const { dataFiltered, dataError, onSetErrorIssuesLog, errorIssues } =
+  const { dataFiltered, dataError, onSetErrorIssuesLog, errorIssues, errorMap } =
     useTableValidator({ data, headers, schema, errorIssuesLog });
 
   const isDateReturn = (value: number) => {
@@ -79,16 +79,6 @@ export const useTableReader = <T extends ZodRawShape>(
     reader.readAsBinaryString(file);
   };
 
-  const onCellChange = (rowIndex: number, header: string, value: string) => {
-    const row = data.find((row) => row.__rowNum__ === rowIndex);
-
-    if (!row) return;
-
-    row[header] = value;
-
-    setData([...data]);
-  };
-
   useEffect(() => {
     onProcessingFile();
   }, [file]);
@@ -103,7 +93,7 @@ export const useTableReader = <T extends ZodRawShape>(
     onProcessingFile,
     dataError,
     errorIssues,
-    onCellChange,
     renderValue,
+    errorMap,
   };
 };
