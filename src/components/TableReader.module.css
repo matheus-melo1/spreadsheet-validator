@@ -48,7 +48,7 @@
 }
 
 .tr:hover {
-  background-color: #f9fafb; /* gray-50 */
+  filter: brightness(160%);
 }
 
 .td {
@@ -71,25 +71,20 @@
 }
 
 .input {
-  width: 12rem; /* w-48 */
+  min-width: 12rem; /* w-48 */
   color: black;
   padding: 0.75rem 1rem;
   font-size: 0.875rem;
   border: 1px solid transparent;
-  border-radius: 0.25rem;
   outline: none;
   background-color: transparent;
-}
-
-.input:focus {
-  box-shadow: 0 0 0 2px #6366f1; /* ring-indigo-500 */
+  pointer-events: none;
 }
 
 .tooltip {
   position: relative;
   display: flex;
   align-items: center;
-  cursor: help;
 }
 
 .tooltip::after {

@@ -4,6 +4,8 @@ import { useTableReader } from "./useTableReader";
 import { ZodObject, ZodRawShape } from "zod";
 import { ErrorLog } from "../types/errorLog.type";
 import InfoIcon from "./InfoIcon";
+import { StyleTable } from "../types/styleTable.type";
+// import { SpreadSheetData } from "../types/spreadSheetData.type";
 
 export interface TableReaderProps<T extends ZodRawShape> {
   file: File | null;
@@ -13,10 +15,12 @@ export interface TableReaderProps<T extends ZodRawShape> {
     name: keyof T;
     message: string;
   }[];
+  styleTable?: StyleTable;
+  onTableData?: (data: T[]) => void;
 }
 
 export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
-  const { file, schema, columnInfo } = props;
+  const { file, schema, columnInfo, styleTable } = props;
 
   const typeFiles = [
     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
@@ -41,11 +45,25 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
     useTableReader(props);
 
   return (
-    <div className={styles.container}>
+    <div
+      className={styles.container}
+      style={{
+        border: styleTable?.tableBorderColor
+          ? `1px solid ${styleTable.tableBorderColor}`
+          : "",
+        borderRadius: styleTable?.tableBorderRadius || "",
+      }}
+    >
       <table className={styles.table}>
         {useMemo(
           () => (
-            <thead className={styles.thead}>
+            <thead
+              className={styles.thead}
+              style={{
+                backgroundColor: styleTable?.headerColor || "",
+                fontFamily: styleTable?.fontFamilyHeader || "",
+              }}
+            >
               <tr>
                 <th className={styles.th}>#</th>
                 {headers.map((header) => {
@@ -61,7 +79,10 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                       key={header}
                       className={styles.th}
                       style={{
-                        backgroundColor: isColumnNotExists ? "#e62517" : "",
+                        backgroundColor: isColumnNotExists ? "#d9041a" : "",
+                        borderLeft: styleTable?.borderColor
+                          ? `1px solid ${styleTable?.borderColor}`
+                          : "",
                       }}
                     >
                       <div className={styles.th_content}>
@@ -85,10 +106,25 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
         )}
         {useMemo(
           () => (
-            <tbody className={styles.tbody}>
+            <tbody
+              className={styles.tbody}
+              style={{
+                backgroundColor: styleTable?.backgroundColor || "",
+                fontFamily: styleTable?.fontFamilyTable || "",
+              }}
+            >
               {dataError.map((row, rowIndex) => (
-                <tr key={row.__rowNum__} className={styles.tr}>
-                  <td style={{ color: "red" }} className={styles.tdIndex}>
+                <tr key={row.__rowNum__} className={styles.tr} style={{}}>
+                  <td
+                    style={{
+                      color: "red",
+                      backgroundColor: styleTable?.backgroundColor || "",
+                      border: styleTable?.borderColor
+                        ? `1px solid ${styleTable?.borderColor}`
+                        : "",
+                    }}
+                    className={styles.tdIndex}
+                  >
                     {Number(row.__rowNum__) + 1}
                   </td>
 
@@ -100,7 +136,15 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                     );
 
                     return (
-                      <td key={`${rowIndex}-${header}`} className={styles.td}>
+                      <td
+                        key={`${rowIndex}-${header}`}
+                        className={styles.td}
+                        style={{
+                          border: styleTable?.borderColor
+                            ? `1px solid ${styleTable?.borderColor}`
+                            : "",
+                        }}
+                      >
                         <input
                           type="text"
                           value={
@@ -119,6 +163,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                           style={{
                             backgroundColor: !!errorHeader ? "#e625174d" : "",
                             border: !!errorHeader ? "1px solid red" : "",
+                            color: styleTable?.textColor || "",
                           }}
                         />
                         {/* <p style={{ color: "red" }}>{errorHeader?.message}</p> */}
@@ -129,13 +174,30 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
               ))}
               {data.map((row, rowIndex) => (
                 <tr key={row.__rowNum__} className={styles.tr}>
-                  <td className={styles.tdIndex}>
+                  <td
+                    className={styles.tdIndex}
+                    style={{
+                      backgroundColor: styleTable?.backgroundColor || "",
+                      color: styleTable?.textColor || "",
+                      border: styleTable?.borderColor
+                        ? `1px solid ${styleTable?.borderColor}`
+                        : "",
+                    }}
+                  >
                     {Number(row.__rowNum__) + 1}
                   </td>
 
                   {headers.map((header) => {
                     return (
-                      <td key={`${rowIndex}-${header}`} className={styles.td}>
+                      <td
+                        key={`${rowIndex}-${header}`}
+                        className={styles.td}
+                        style={{
+                          border: styleTable?.borderColor
+                            ? `1px solid ${styleTable?.borderColor}`
+                            : "",
+                        }}
+                      >
                         <input
                           type="text"
                           value={
@@ -151,6 +213,9 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
                             onCellChange?.(rowIndex, header, e.target.value)
                           }
                           className={styles.input}
+                          style={{
+                            color: styleTable?.textColor || "",
+                          }}
                         />
                       </td>
                     );

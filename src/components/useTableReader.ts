@@ -4,18 +4,14 @@ import { ZodDate, type ZodRawShape, z } from "zod";
 import { TableReaderProps } from "./TableReader";
 import { formatDate } from "../utils/formatDate";
 import { useTableValidator } from "./useTableValidator";
-
-interface ExcelData {
-  [key: string]: string | number;
-  __rowNum__: number;
-}
+import { SpreadSheetData } from "../types/spreadSheetData.type";
 
 export const useTableReader = <T extends ZodRawShape>(
   props: TableReaderProps<T>,
 ) => {
-  const { file, schema, errorIssuesLog } = props;
+  const { file, schema, errorIssuesLog, onTableData } = props;
 
-  const [data, setData] = React.useState<ExcelData[]>([]);
+  const [data, setData] = React.useState<SpreadSheetData[]>([]);
   const [headers, setHeaders] = React.useState<string[]>([]);
 
   const { dataFiltered, dataError, onSetErrorIssuesLog, errorIssues } =
@@ -57,11 +53,11 @@ export const useTableReader = <T extends ZodRawShape>(
 
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
 
-      const jsonData = XLSX.utils.sheet_to_json<ExcelData>(firstSheet);
+      const jsonData = XLSX.utils.sheet_to_json<SpreadSheetData>(firstSheet);
       const headers = Object.keys(jsonData[0]);
 
       const jsonForm = jsonData.map((row, index) => {
-        const mappedRow = { ...row, __rowNum__: index } as ExcelData;
+        const mappedRow = { ...row, __rowNum__: index } as SpreadSheetData & T;
 
         for (const header of headers) {
           const value = row[header];
@@ -75,7 +71,8 @@ export const useTableReader = <T extends ZodRawShape>(
 
       if (jsonData.length > 0) {
         setHeaders(Object.keys(jsonData[0]));
-        setData(jsonForm as ExcelData[]);
+        setData(jsonForm);
+        onTableData?.(jsonForm);
       }
     };
 
