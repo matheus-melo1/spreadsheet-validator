@@ -1,9 +1,10 @@
 import { useState, useCallback, useRef, useLayoutEffect, type RefObject, type CSSProperties } from "react";
 
-export interface VirtualItem {
-  index: number;
-  start: number;
-  size: number;
+export interface VirtualRange {
+  startIndex: number;
+  endIndex: number;
+  topSpacerHeight: number;
+  bottomSpacerHeight: number;
 }
 
 interface UseVirtualScrollOptions {
@@ -14,8 +15,7 @@ interface UseVirtualScrollOptions {
 }
 
 interface UseVirtualScrollReturn {
-  virtualItems: VirtualItem[];
-  totalHeight: number;
+  range: VirtualRange;
   containerProps: {
     onScroll: () => void;
     style: CSSProperties;
@@ -57,32 +57,25 @@ export const useVirtualScroll = ({
     });
   }, [containerRef]);
 
-  const totalHeight = totalItems * itemHeight;
-
   const startIndex = Math.max(0, Math.floor(scrollTop / itemHeight) - overscan);
   const endIndex = Math.min(
     totalItems - 1,
     Math.floor((scrollTop + containerHeight) / itemHeight) + overscan
   );
 
-  const virtualItems: VirtualItem[] = [];
-  for (let i = startIndex; i <= endIndex; i++) {
-    virtualItems.push({
-      index: i,
-      start: i * itemHeight,
-      size: itemHeight,
-    });
-  }
+  const topSpacerHeight = startIndex * itemHeight;
+  const bottomSpacerHeight = Math.max(0, (totalItems - endIndex - 1) * itemHeight);
 
   const containerProps = {
     onScroll: handleScroll,
     style: {
-      overflow: "auto",
+      overflow: "auto" as const,
       position: "relative" as const,
-      contain: "strict" as const,
-      willChange: "transform" as const,
     },
   };
 
-  return { virtualItems, totalHeight, containerProps };
+  return {
+    range: { startIndex, endIndex, topSpacerHeight, bottomSpacerHeight },
+    containerProps,
+  };
 };

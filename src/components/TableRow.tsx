@@ -14,7 +14,7 @@ interface TableRowProps {
   renderValue: (
     val: string | number | undefined,
     header: string,
-    type: "visual" | "data"
+    type: "visual" | "data",
   ) => string | number | Date;
 }
 
@@ -28,10 +28,7 @@ export const TableRow = memo(function TableRow({
   renderValue,
 }: TableRowProps) {
   return (
-    <tr
-      className={styles.tr}
-      style={style}
-    >
+    <tr className={styles.tr} style={style}>
       <td
         className={styles.tdIndex}
         style={{

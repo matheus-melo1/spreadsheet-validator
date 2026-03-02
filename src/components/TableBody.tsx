@@ -1,6 +1,6 @@
 import { useRef } from "react";
 import styles from "./TableReader.module.css";
-import { useVirtualScroll, type VirtualItem } from "./useVirtualScroll";
+import { useVirtualScroll } from "./useVirtualScroll";
 import { TableRow } from "./TableRow";
 import { TableHeader } from "./TableHeader";
 import type { ErrorLog } from "../types/errorLog.type";
@@ -21,7 +21,7 @@ interface TableBodyProps {
   renderValue: (
     val: string | number | undefined,
     header: string,
-    type: "visual" | "data"
+    type: "visual" | "data",
   ) => string | number | Date;
 }
 
@@ -40,12 +40,14 @@ export function TableBody({
 }: TableBodyProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const { virtualItems, totalHeight, containerProps } = useVirtualScroll({
+  const { range, containerProps } = useVirtualScroll({
     totalItems: allRows.length,
     itemHeight: rowHeight,
     containerRef,
     overscan,
   });
+
+  const visibleRows = allRows.slice(range.startIndex, range.endIndex + 1);
 
   return (
     <div
@@ -54,13 +56,9 @@ export function TableBody({
       style={{
         ...containerProps.style,
         height: containerHeight,
-        overflow: "auto",
       }}
     >
-      <table
-        className={styles.table}
-        style={{ tableLayout: "fixed" }}
-      >
+      <table className={styles.table} style={{ tableLayout: "fixed" }}>
         <colgroup>
           <col style={{ width: "64px" }} />
           {headers.map((header) => (
@@ -80,17 +78,19 @@ export function TableBody({
             fontFamily: styleTable?.fontFamilyTable || "",
           }}
         >
-          {/* Spacer row to create total scroll height */}
-          <tr style={{ height: 0, visibility: "hidden", lineHeight: 0 }}>
-            <td
-              colSpan={headers.length + 1}
-              style={{ height: totalHeight, padding: 0, border: "none" }}
-            />
-          </tr>
-          {virtualItems.map((virtualItem: VirtualItem) => {
-            const row = allRows[virtualItem.index];
-            if (!row) return null;
-            const isErrorRow = virtualItem.index < errorRowCount;
+          {/* Top spacer - pushes visible rows to correct scroll position */}
+          {range.topSpacerHeight > 0 && (
+            <tr>
+              <td
+                colSpan={headers.length + 1}
+                style={{ height: range.topSpacerHeight, padding: 0, border: "none" }}
+              />
+            </tr>
+          )}
+          {/* Visible rows - in normal table flow, aligned with header */}
+          {visibleRows.map((row, i) => {
+            const actualIndex = range.startIndex + i;
+            const isErrorRow = actualIndex < errorRowCount;
             const rowErrors = errorMap.get(row.__rowNum__);
 
             return (
@@ -100,17 +100,21 @@ export function TableBody({
                 headers={headers}
                 rowErrors={rowErrors}
                 isErrorRow={isErrorRow}
-                style={{
-                  position: "absolute",
-                  top: virtualItem.start,
-                  height: rowHeight,
-                  width: "100%",
-                }}
+                style={{ height: rowHeight }}
                 styleTable={styleTable}
                 renderValue={renderValue}
               />
             );
           })}
+          {/* Bottom spacer - maintains total scroll height */}
+          {range.bottomSpacerHeight > 0 && (
+            <tr>
+              <td
+                colSpan={headers.length + 1}
+                style={{ height: range.bottomSpacerHeight, padding: 0, border: "none" }}
+              />
+            </tr>
+          )}
         </tbody>
       </table>
     </div>
