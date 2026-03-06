@@ -2,9 +2,11 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import dts from "vite-plugin-dts";
 import { resolve } from "node:path";
+import { inlineWorkerPlugin } from "./vite-plugin-inline-worker";
 
 export default defineConfig({
   plugins: [
+    inlineWorkerPlugin(),
     react(),
     dts({
       insertTypesEntry: true,
@@ -18,7 +20,10 @@ export default defineConfig({
       fileName: (format) => (format === "es" ? "index.mjs" : "index.cjs"),
     },
     rollupOptions: {
-      external: ["react", "react-dom", "xlsx"],
+      external: ["react", "react-dom", "xlsx", "zod"],
     },
+  },
+  worker: {
+    format: "es",
   },
 });

@@ -1,9 +1,10 @@
 import z, { ZodObject, ZodRawShape } from "zod";
 import { ErrorLog } from "../types/errorLog.type";
 import { ErrorCode } from "../types/enum/errorCode.enum";
-import { useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { createWorker } from "../worker/createWorker";
 
-interface ITableValidator<T extends ZodRawShape> {
+export interface ITableValidator<T extends ZodRawShape> {
   data: any[];
   headers: string[];
   schema?: ZodObject<T>;
@@ -14,19 +15,44 @@ export const useTableValidator = <T extends ZodRawShape>(
   props: ITableValidator<T>,
 ) => {
   const { data, headers, schema, errorIssuesLog } = props;
+  const [errorIssuesState, setErrorIssuesState] = useState<
+    ErrorLog[] | undefined
+  >(undefined);
 
-  const onValidationSchema = () => {
+  useEffect(() => {
     if (!schema) return;
+    if (!window.Worker) {
+      console.log("Worker not supported");
+      return;
+    }
 
-    return z.array(z.object(schema.shape)).safeParse(data);
-  };
+    const worker = createWorker();
+    const schemaTOJSON = JSON.stringify(z.toJSONSchema(schema));
 
-  const validation = onValidationSchema();
+    worker.postMessage({
+      schema: schemaTOJSON,
+      data,
+    });
+
+    worker.onmessage = (event) => {
+      const _validation = event.data;
+      console.log("_validation", _validation);
+      console.log("_validation", _validation?.error?.stack);
+      // setErrorIssuesState(_validation.error?.issues ?? []);
+    };
+
+    worker.onerror = (event) => {
+      console.log("worker.onerror", event);
+    };
+
+    return () => worker.terminate();
+  }, [data, schema]);
+
+  console.log("errorIssuesState", errorIssuesState);
 
   const isColumnNotExists = headers
     ?.map((header) => {
       const isHeaderExists = schema?.shape[header] ? true : false;
-
       if (isHeaderExists) return;
 
       return {
@@ -39,15 +65,13 @@ export const useTableValidator = <T extends ZodRawShape>(
     })
     .filter((issue) => issue !== undefined);
 
-  const validationIssuesFormatted = (validation?.error?.issues ?? []).map(
-    (issue) => {
-      return {
-        ...issue,
-        column: issue.path[1],
-        rowIndex: issue.path[0],
-      };
-    },
-  );
+  const validationIssuesFormatted = (errorIssuesState ?? []).map((issue) => {
+    return {
+      ...issue,
+      column: issue.path[1],
+      rowIndex: issue.path[0],
+    };
+  });
 
   const errorIssues = [...validationIssuesFormatted, ...isColumnNotExists];
 

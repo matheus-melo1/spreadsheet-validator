@@ -78,16 +78,18 @@ export function TableBody({
             fontFamily: styleTable?.fontFamilyTable || "",
           }}
         >
-          {/* Top spacer - pushes visible rows to correct scroll position */}
           {range.topSpacerHeight > 0 && (
             <tr>
               <td
                 colSpan={headers.length + 1}
-                style={{ height: range.topSpacerHeight, padding: 0, border: "none" }}
+                style={{
+                  height: range.topSpacerHeight,
+                  padding: 0,
+                  border: "none",
+                }}
               />
             </tr>
           )}
-          {/* Visible rows - in normal table flow, aligned with header */}
           {visibleRows.map((row, i) => {
             const actualIndex = range.startIndex + i;
             const isErrorRow = actualIndex < errorRowCount;
@@ -106,12 +108,15 @@ export function TableBody({
               />
             );
           })}
-          {/* Bottom spacer - maintains total scroll height */}
           {range.bottomSpacerHeight > 0 && (
             <tr>
               <td
                 colSpan={headers.length + 1}
-                style={{ height: range.bottomSpacerHeight, padding: 0, border: "none" }}
+                style={{
+                  height: range.bottomSpacerHeight,
+                  padding: 0,
+                  border: "none",
+                }}
               />
             </tr>
           )}

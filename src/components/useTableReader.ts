@@ -1,6 +1,6 @@
-import React, { useEffect } from "react";
+import { useEffect, useState } from "react";
 import * as XLSX from "xlsx";
-import { ZodDate, type ZodRawShape } from "zod";
+import z, { ZodDate, type ZodRawShape } from "zod";
 import { TableReaderProps } from "./TableReader";
 import { formatDate } from "../utils/formatDate";
 import { useTableValidator } from "./useTableValidator";
@@ -11,11 +11,16 @@ export const useTableReader = <T extends ZodRawShape>(
 ) => {
   const { file, schema, errorIssuesLog, onTableData } = props;
 
-  const [data, setData] = React.useState<SpreadSheetData[]>([]);
-  const [headers, setHeaders] = React.useState<string[]>([]);
+  const [data, setData] = useState<SpreadSheetData[]>([]);
+  const [headers, setHeaders] = useState<string[]>([]);
 
-  const { dataFiltered, dataError, onSetErrorIssuesLog, errorIssues, errorMap } =
-    useTableValidator({ data, headers, schema, errorIssuesLog });
+  const {
+    dataFiltered,
+    dataError,
+    onSetErrorIssuesLog,
+    errorIssues,
+    errorMap,
+  } = useTableValidator({ data, headers, schema, errorIssuesLog });
 
   const isDateReturn = (value: number) => {
     const jsDate = XLSX.SSF.parse_date_code(value);

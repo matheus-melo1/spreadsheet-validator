@@ -56,13 +56,10 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
 
   const schemaKeys = useMemo(
     () => new Set(schema ? Object.keys(schema.shape) : []),
-    [schema]
+    [schema],
   );
 
-  const allRows = useMemo(
-    () => [...dataError, ...data],
-    [dataError, data]
-  );
+  const allRows = useMemo(() => [...dataError, ...data], [dataError, data]);
 
   return (
     <div
