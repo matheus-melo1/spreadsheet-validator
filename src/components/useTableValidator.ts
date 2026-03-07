@@ -27,17 +27,15 @@ export const useTableValidator = <T extends ZodRawShape>(
     }
 
     const worker = createWorker();
-    // const schemaTOJSON = JSON.stringify(z.toJSONSchema(schema));
+    const schemaTOJSON = JSON.stringify(z.toJSONSchema(schema));
 
     worker.postMessage({
-      schema: "",
+      schema: schemaTOJSON,
       data,
     });
 
     worker.onmessage = (event) => {
       const { result } = event.data;
-      console.log("_validation", result);
-      console.log("_validation", result?.error?.message);
       setErrorIssuesState(JSON.parse(result?.error?.message));
     };
 
