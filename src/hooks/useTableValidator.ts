@@ -8,43 +8,30 @@ export interface ITableValidator<T extends ZodRawShape> {
   data: any[];
   headers: string[];
   schema?: ZodObject<T>;
+  file?: File | null;
   errorIssuesLog?: (error: ErrorLog[] | undefined) => void;
 }
 
 export const useTableValidator = <T extends ZodRawShape>(
   props: ITableValidator<T>,
 ) => {
-  const { data, headers, schema, errorIssuesLog } = props;
+  const { data, headers, schema, errorIssuesLog, file } = props;
   const [errorIssuesState, setErrorIssuesState] = useState<
     ErrorLog[] | undefined
   >(undefined);
 
-  useEffect(() => {
-    if (!schema) return;
-    if (!window.Worker) {
-      console.log("Worker not supported");
-      return;
+  const chunkArray = <T>(arr: T[], parts: number) => {
+    const chunkSize = Math.ceil(arr.length / parts);
+    const chunks: T[][] = [];
+
+    for (let i = 0; i < arr.length; i += chunkSize) {
+      chunks.push(arr.slice(i, i + chunkSize));
     }
 
-    const worker = createWorker();
-    const schemaTOJSON = JSON.stringify(z.toJSONSchema(schema));
+    return chunks;
+  };
 
-    worker.postMessage({
-      schema: schemaTOJSON,
-      data,
-    });
-
-    worker.onmessage = (event) => {
-      const { result } = event.data;
-      setErrorIssuesState(JSON.parse(result?.error?.message));
-    };
-
-    worker.onerror = (event) => {
-      console.log("worker.onerror", event);
-    };
-
-    return () => worker.terminate();
-  }, [data, schema]);
+  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
   console.log("errorIssuesState", errorIssuesState);
 
@@ -96,8 +83,10 @@ export const useTableValidator = <T extends ZodRawShape>(
     const map = new Map<number, Map<string, ErrorLog>>();
     errorIssues.forEach((err) => {
       const rowIdx = err.rowIndex;
+
       if (rowIdx == null || typeof rowIdx !== "number") return;
       if (!map.has(rowIdx)) map.set(rowIdx, new Map());
+
       map.get(rowIdx)!.set(String(err.column), err as ErrorLog);
     });
     return map;
@@ -106,6 +95,71 @@ export const useTableValidator = <T extends ZodRawShape>(
   const onSetErrorIssuesLog = () => {
     errorIssuesLog?.(errorIssues as ErrorLog[]);
   };
+
+
+  const dataFilt = data.map(row => {
+    if (!schema?.shape) return []
+
+    return Object.keys(schema?.shape).map((header, index) => {
+      const schemaKeys = Object.keys(row)
+      const matchHeader = schemaKeys.filter(key => key === header)
+
+      if (!matchHeader) return
+
+      return {
+        [schemaKeys[index]]: row[header]
+      }
+    }).filter(obj => obj !== undefined)
+  }).flat()
+
+  console.log('dataFilt', dataFilt)
+
+  useEffect(() => {
+    if (!schema || isColumnNotExists.length === headers.length) return;
+    if (!window.Worker) {
+      console.log("Worker not supported");
+      return;
+    }
+
+    const worker = createWorker();
+    const schemaTOJSON = JSON.stringify(z.toJSONSchema(schema));
+
+    // chunkArray(data, 3).forEach(async (chunk, index) => { if (index > 0) {
+    //     await delay(2000)
+    //   }
+    //
+    //   worker.postMessage({
+    //     schema: schemaTOJSON,
+    //     data: chunk,
+    //   });
+    //
+    //   worker.onmessage = (event) => {
+    //     const { result } = event.data;
+    //     setErrorIssuesState(prev => ([...(prev ?? []), ...JSON.parse(result?.error?.message)]));
+    //   };
+    // }
+    // )
+
+    worker.postMessage({
+      schema: schemaTOJSON,
+      data: dataFilt,
+    });
+
+    worker.onmessage = (event) => {
+      const { result } = event.data;
+      setErrorIssuesState(JSON.parse(result?.error?.message));
+    };
+
+    worker.onerror = (event) => {
+      console.log("worker.onerror", event);
+    };
+
+    return () => worker.terminate();
+  }, [data, schema]);
+
+  useEffect(() => {
+    setErrorIssuesState([])
+  }, [file])
 
   return {
     dataFiltered,

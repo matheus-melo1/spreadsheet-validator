@@ -1,15 +1,15 @@
-import { z } from "zod";
+import { z, ZodObject } from "zod";
 
 declare var self: DedicatedWorkerGlobalScope;
-export {};
+export { };
 
-self.onmessage = (event: MessageEvent<any>) => {
+self.onmessage = <T>(event: MessageEvent<T>) => {
   const { schema, data } = event.data as {
     schema: string;
-    data: any[];
+    data: T[];
   };
 
-  const schemaParsed = z.fromJSONSchema(JSON.parse(schema));
+  const schemaParsed = z.fromJSONSchema(JSON.parse(schema)) as ZodObject<any>;
 
   const result = z.array(z.object(schemaParsed?.shape)).safeParse(data);
 

@@ -1,11 +1,11 @@
 import { useRef } from "react";
-import styles from "./TableReader.module.css";
-import { useVirtualScroll } from "./useVirtualScroll";
+import styles from "../styles/TableReader.module.css";
 import { TableRow } from "./TableRow";
 import { TableHeader } from "./TableHeader";
 import type { ErrorLog } from "../types/errorLog.type";
 import type { SpreadSheetData } from "../types/spreadSheetData.type";
 import type { StyleTable } from "../types/styleTable.type";
+import { useVirtualScroll } from "../hooks/useVirtualScroll";
 
 interface TableBodyProps {
   allRows: SpreadSheetData[];

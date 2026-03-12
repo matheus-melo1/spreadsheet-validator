@@ -1,5 +1,5 @@
 import { memo, type CSSProperties } from "react";
-import styles from "./TableReader.module.css";
+import styles from "../styles/TableReader.module.css";
 import type { ErrorLog } from "../types/errorLog.type";
 import type { SpreadSheetData } from "../types/spreadSheetData.type";
 import type { StyleTable } from "../types/styleTable.type";
