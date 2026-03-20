@@ -36,7 +36,7 @@ export const useTableValidator = <T extends ZodRawShape>(
       .filter((issue) => issue !== undefined);
   }, [headers, schema]);
 
-  const dataFilt = useMemo(() => {
+  const schemaMappedData = useMemo(() => {
     if (!schema?.shape || !data.length) return [];
     const schemaKeys = Object.keys(schema.shape);
     return data.map((row) => {
@@ -74,7 +74,7 @@ export const useTableValidator = <T extends ZodRawShape>(
     [errorRowSet, data],
   );
 
-  const dataFiltered = useMemo(
+  const schemaMappedDataered = useMemo(
     () =>
       errorRowSet.size > 0
         ? data.filter((row) => !errorRowSet.has(row.__rowNum__))
@@ -111,7 +111,7 @@ export const useTableValidator = <T extends ZodRawShape>(
 
     worker.postMessage({
       schema: schemaTOJSON,
-      data: dataFilt,
+      data: schemaMappedData,
     });
 
     worker.onmessage = (event) => {
@@ -131,7 +131,7 @@ export const useTableValidator = <T extends ZodRawShape>(
   }, [file])
 
   return {
-    dataFiltered,
+    schemaMappedDataered,
     dataError,
     onSetErrorIssuesLog,
     errorIssues,
