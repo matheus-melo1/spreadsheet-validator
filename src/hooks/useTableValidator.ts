@@ -20,63 +20,66 @@ export const useTableValidator = <T extends ZodRawShape>(
     ErrorLog[] | undefined
   >(undefined);
 
-  const chunkArray = <T>(arr: T[], parts: number) => {
-    const chunkSize = Math.ceil(arr.length / parts);
-    const chunks: T[][] = [];
+  const isColumnNotExists = useMemo(() => {
+    if (!headers || !schema?.shape) return [];
+    return headers
+      .map((header) => {
+        if (schema.shape[header]) return undefined;
+        return {
+          code: ErrorCode.COLUMN_NOT_EXISTS,
+          message: `column ${header} not exists in schema`,
+          column: header,
+          rowIndex: null,
+          path: [null, header],
+        };
+      })
+      .filter((issue) => issue !== undefined);
+  }, [headers, schema]);
 
-    for (let i = 0; i < arr.length; i += chunkSize) {
-      chunks.push(arr.slice(i, i + chunkSize));
-    }
+  const dataFilt = useMemo(() => {
+    if (!schema?.shape || !data.length) return [];
+    const schemaKeys = Object.keys(schema.shape);
+    return data.map((row) => {
+      const picked: Record<string, unknown> = {};
+      for (const key of schemaKeys) {
+        if (key in row) {
+          picked[key] = row[key];
+        }
+      }
+      return picked;
+    });
+  }, [data, schema]);
 
-    return chunks;
-  };
-
-  const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
-  console.log("errorIssuesState", errorIssuesState);
-
-  const isColumnNotExists = headers
-    ?.map((header) => {
-      const isHeaderExists = schema?.shape[header] ? true : false;
-      if (isHeaderExists) return;
-
-      return {
-        code: ErrorCode.COLUMN_NOT_EXISTS,
-        message: `column ${header} not exists in schema`,
-        column: header,
-        rowIndex: null,
-        path: [null, header],
-      };
-    })
-    .filter((issue) => issue !== undefined);
-
-  const validationIssuesFormatted = (errorIssuesState ?? []).map((issue) => {
-    return {
+  const { errorIssues, errorRowSet } = useMemo(() => {
+    const formatted = (errorIssuesState ?? []).map((issue) => ({
       ...issue,
       column: issue.path[1],
       rowIndex: issue.path[0],
-    };
-  });
-
-  const errorIssues = [...validationIssuesFormatted, ...isColumnNotExists];
-
-  const errorIssueMatch = (rowNum: number) =>
-    errorIssues?.some((issue) => issue?.rowIndex === rowNum);
+    }));
+    const combined = [...formatted, ...isColumnNotExists];
+    const rowSet = new Set<number>();
+    for (const issue of combined) {
+      if (typeof issue.rowIndex === "number") {
+        rowSet.add(issue.rowIndex);
+      }
+    }
+    return { errorIssues: combined, errorRowSet: rowSet };
+  }, [errorIssuesState, isColumnNotExists]);
 
   const dataError = useMemo(
     () =>
-      errorIssues && errorIssues.length > 0
-        ? data.filter((row) => errorIssueMatch(row.__rowNum__))
+      errorRowSet.size > 0
+        ? data.filter((row) => errorRowSet.has(row.__rowNum__))
         : [],
-    [errorIssues, data],
+    [errorRowSet, data],
   );
 
   const dataFiltered = useMemo(
     () =>
-      errorIssues && errorIssues.length > 0
-        ? data.filter((row) => !errorIssueMatch(row.__rowNum__))
+      errorRowSet.size > 0
+        ? data.filter((row) => !errorRowSet.has(row.__rowNum__))
         : data,
-    [errorIssues, data],
+    [errorRowSet, data],
   );
 
   const errorMap = useMemo(() => {
@@ -96,24 +99,6 @@ export const useTableValidator = <T extends ZodRawShape>(
     errorIssuesLog?.(errorIssues as ErrorLog[]);
   };
 
-
-  const dataFilt = data.map(row => {
-    if (!schema?.shape) return []
-
-    return Object.keys(schema?.shape).map((header, index) => {
-      const schemaKeys = Object.keys(row)
-      const matchHeader = schemaKeys.filter(key => key === header)
-
-      if (!matchHeader) return
-
-      return {
-        [schemaKeys[index]]: row[header]
-      }
-    }).filter(obj => obj !== undefined)
-  }).flat()
-
-  console.log('dataFilt', dataFilt)
-
   useEffect(() => {
     if (!schema || isColumnNotExists.length === headers.length) return;
     if (!window.Worker) {
@@ -123,22 +108,6 @@ export const useTableValidator = <T extends ZodRawShape>(
 
     const worker = createWorker();
     const schemaTOJSON = JSON.stringify(z.toJSONSchema(schema));
-
-    // chunkArray(data, 3).forEach(async (chunk, index) => { if (index > 0) {
-    //     await delay(2000)
-    //   }
-    //
-    //   worker.postMessage({
-    //     schema: schemaTOJSON,
-    //     data: chunk,
-    //   });
-    //
-    //   worker.onmessage = (event) => {
-    //     const { result } = event.data;
-    //     setErrorIssuesState(prev => ([...(prev ?? []), ...JSON.parse(result?.error?.message)]));
-    //   };
-    // }
-    // )
 
     worker.postMessage({
       schema: schemaTOJSON,
