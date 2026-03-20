@@ -36,7 +36,20 @@ export const useTableValidator = <T extends ZodRawShape>(
       .filter((issue) => issue !== undefined);
   }, [headers, schema]);
 
-  const schemaMappedData = useMemo(() => {
+  const validationSchema = useMemo(() => {
+    if (!schema?.shape || !headers.length) return undefined;
+    const pickKeys: Record<string, true> = {};
+    for (const header of headers) {
+      if (schema.shape[header]) {
+        pickKeys[header] = true;
+      }
+    }
+    return Object.keys(pickKeys).length > 0
+      ? schema.pick(pickKeys as any)
+      : undefined;
+  }, [schema, headers]);
+
+  const dataFilt = useMemo(() => {
     if (!schema?.shape || !data.length) return [];
     const schemaKeys = Object.keys(schema.shape);
     return data.map((row) => {
@@ -74,7 +87,7 @@ export const useTableValidator = <T extends ZodRawShape>(
     [errorRowSet, data],
   );
 
-  const schemaMappedDataered = useMemo(
+  const dataFiltered = useMemo(
     () =>
       errorRowSet.size > 0
         ? data.filter((row) => !errorRowSet.has(row.__rowNum__))
@@ -100,18 +113,18 @@ export const useTableValidator = <T extends ZodRawShape>(
   };
 
   useEffect(() => {
-    if (!schema || isColumnNotExists.length === headers.length) return;
+    if (!validationSchema || isColumnNotExists.length === headers.length) return;
     if (!window.Worker) {
       console.log("Worker not supported");
       return;
     }
 
     const worker = createWorker();
-    const schemaTOJSON = JSON.stringify(z.toJSONSchema(schema));
+    const schemaTOJSON = JSON.stringify(z.toJSONSchema(validationSchema));
 
     worker.postMessage({
       schema: schemaTOJSON,
-      data: schemaMappedData,
+      data: dataFilt,
     });
 
     worker.onmessage = (event) => {
@@ -124,14 +137,14 @@ export const useTableValidator = <T extends ZodRawShape>(
     };
 
     return () => worker.terminate();
-  }, [data, schema]);
+  }, [dataFilt, validationSchema]);
 
   useEffect(() => {
     setErrorIssuesState([])
   }, [file])
 
   return {
-    schemaMappedDataered,
+    dataFiltered,
     dataError,
     onSetErrorIssuesLog,
     errorIssues,
