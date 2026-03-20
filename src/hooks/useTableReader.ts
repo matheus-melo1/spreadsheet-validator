@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import * as XLSX from "xlsx";
 import z, { ZodDate, type ZodRawShape } from "zod";
-import { TableReaderProps } from "./TableReader";
 import { formatDate } from "../utils/formatDate";
-import { useTableValidator } from "./useTableValidator";
 import { SpreadSheetData } from "../types/spreadSheetData.type";
+import { useTableValidator } from "./useTableValidator";
+import { TableReaderProps } from "../components/TableReader";
 
 export const useTableReader = <T extends ZodRawShape>(
   props: TableReaderProps<T>,
@@ -20,7 +20,7 @@ export const useTableReader = <T extends ZodRawShape>(
     onSetErrorIssuesLog,
     errorIssues,
     errorMap,
-  } = useTableValidator({ data, headers, schema, errorIssuesLog });
+  } = useTableValidator({ data, headers, schema, errorIssuesLog, file });
 
   const isDateReturn = (value: number) => {
     const jsDate = XLSX.SSF.parse_date_code(value);
@@ -28,25 +28,24 @@ export const useTableReader = <T extends ZodRawShape>(
     return new Date(jsDate.y, jsDate.m - 1, jsDate.d);
   };
 
-  const renderValue = (
-    val: string | number | undefined,
-    header: string,
-    type: "visual" | "data",
-  ) => {
-    const field = schema?.shape[header];
+  const renderValue = useCallback(
+    (val: string | number | undefined, header: string, type: "visual" | "data") => {
+      const field = schema?.shape[header];
 
-    if (field instanceof ZodDate) {
-      if (type === "visual") {
-        return typeof val === "number"
-          ? formatDate(isDateReturn(val), "DD/MM/YYYY")
-          : String(val ?? "");
+      if (field instanceof ZodDate) {
+        if (type === "visual") {
+          return typeof val === "number"
+            ? formatDate(isDateReturn(val), "DD/MM/YYYY")
+            : String(val ?? "");
+        }
+
+        return isDateReturn(val as number);
       }
 
-      return isDateReturn(val as number);
-    }
-
-    return val ?? "";
-  };
+      return val ?? "";
+    },
+    [schema],
+  );
 
   const onProcessingFile = () => {
     if (!file) return;

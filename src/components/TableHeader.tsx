@@ -1,5 +1,5 @@
 import { memo } from "react";
-import styles from "./TableReader.module.css";
+import styles from "../styles/TableReader.module.css";
 import InfoIcon from "./InfoIcon";
 import type { StyleTable } from "../types/styleTable.type";
 

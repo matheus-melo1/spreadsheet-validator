@@ -1,5 +1,5 @@
 {
-  "name": "@matheus-melo1/xlsx-validator",
+  "name": "spreadsheet-validator",
   "version": "0.1.0",
   "type": "module",
   "main": "./dist/index.cjs",

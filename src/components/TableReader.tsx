@@ -1,10 +1,10 @@
 import { useMemo } from "react";
-import styles from "./TableReader.module.css";
-import { useTableReader } from "./useTableReader";
+import styles from "../styles/TableReader.module.css";
 import { ZodObject, ZodRawShape } from "zod";
 import { ErrorLog } from "../types/errorLog.type";
 import { StyleTable } from "../types/styleTable.type";
 import { TableBody } from "./TableBody";
+import { useTableReader } from "../hooks/useTableReader";
 
 export interface TableReaderProps<T extends ZodRawShape> {
   file: File | null;
