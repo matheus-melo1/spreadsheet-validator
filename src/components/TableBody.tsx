@@ -1,4 +1,4 @@
-import { useRef } from "react";
+import { memo, useRef } from "react";
 import styles from "../styles/TableReader.module.css";
 import { TableRow } from "./TableRow";
 import { TableHeader } from "./TableHeader";
@@ -25,7 +25,7 @@ interface TableBodyProps {
   ) => string | number | Date;
 }
 
-export function TableBody({
+export const TableBody = memo(function TableBody({
   allRows,
   errorRowCount,
   headers,
@@ -124,4 +124,4 @@ export function TableBody({
       </table>
     </div>
   );
-}
+});
