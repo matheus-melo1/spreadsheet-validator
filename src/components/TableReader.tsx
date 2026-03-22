@@ -5,6 +5,7 @@ import { ErrorLog } from "../types/errorLog.type";
 import { StyleTable } from "../types/styleTable.type";
 import { TableBody } from "./TableBody";
 import { useTableReader } from "../hooks/useTableReader";
+import typeFiles from "../utils/typeFiles";
 
 export interface TableReaderProps<T extends ZodRawShape> {
   file: File | null;
@@ -19,6 +20,7 @@ export interface TableReaderProps<T extends ZodRawShape> {
   rowHeight?: number;
   overscan?: number;
   containerHeight?: number;
+  loadingComponent?: React.ReactNode;
 }
 
 export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
@@ -30,28 +32,10 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
     rowHeight = 36,
     overscan = 5,
     containerHeight = 600,
+    loadingComponent,
   } = props;
 
-  const typeFiles = [
-    "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-    "text/csv",
-    "xlsx",
-    "csv",
-  ];
-
-  if (file === null) {
-    return <p style={{ color: "black" }}>Selecione um arquivo, para exibir</p>;
-  }
-
-  if (!typeFiles.includes(file.type)) {
-    return (
-      <p style={{ color: "black" }}>
-        Arquivo invalido, selecione um arquivo de tipo xlsx ou csv
-      </p>
-    );
-  }
-
-  const { data, headers, dataError, errorMap, renderValue } =
+  const { data, headers, dataError, errorMap, renderValue, isLoading } =
     useTableReader(props);
 
   const schemaKeys = useMemo(
@@ -60,6 +44,23 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
   );
 
   const allRows = useMemo(() => [...dataError, ...data], [dataError, data]);
+
+  if (file === null) {
+    return <p style={{ color: "black" }}>Select a file</p>;
+  }
+
+  if (!typeFiles.includes(file.type)) {
+    return (
+      <p style={{ color: "black" }}>
+        Invalid file type, only supports{" "} xlsx and csv
+      </p>
+    );
+  }
+
+  if (loadingComponent && isLoading) {
+    return loadingComponent
+  }
+
 
   return (
     <div
