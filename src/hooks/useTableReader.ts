@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import * as XLSX from "xlsx";
-import z, { ZodDate, type ZodRawShape } from "zod";
+import z, { ZodISODate, ZodISODateTime, type ZodRawShape } from "zod";
 import { formatDate } from "../utils/formatDate";
 import { SpreadSheetData } from "../types/spreadSheetData.type";
 import { useTableValidator } from "./useTableValidator";
@@ -13,6 +13,7 @@ export const useTableReader = <T extends ZodRawShape>(
 
   const [data, setData] = useState<SpreadSheetData[]>([]);
   const [headers, setHeaders] = useState<string[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const {
     dataFiltered,
@@ -32,14 +33,18 @@ export const useTableReader = <T extends ZodRawShape>(
     (val: string | number | undefined, header: string, type: "visual" | "data") => {
       const field = schema?.shape[header];
 
-      if (field instanceof ZodDate) {
+      if (field instanceof ZodISODate || field instanceof ZodISODateTime) {
         if (type === "visual") {
           return typeof val === "number"
             ? formatDate(isDateReturn(val), "DD/MM/YYYY")
             : String(val ?? "");
         }
 
-        return isDateReturn(val as number);
+        const date = isDateReturn(val as number);
+        if (field instanceof ZodISODate) {
+          return date.toISOString().split("T")[0];
+        }
+        return formatDate(new Date(date.toISOString()), "DD/MM/YYYY");
       }
 
       return val ?? "";
@@ -47,17 +52,24 @@ export const useTableReader = <T extends ZodRawShape>(
     [schema],
   );
 
+  const archiveToJSON = async (sheet: XLSX.WorkSheet) => {
+    return XLSX.utils.sheet_to_json<SpreadSheetData>(sheet)
+  }
+
+  console.log(isLoading)
+
   const onProcessingFile = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    reader.onload = (event) => {
+    setIsLoading(true)
+    reader.onload = async (event) => {
       const binaryStr = event.target?.result;
       const workbook = XLSX.read(binaryStr, { type: "binary" });
 
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
 
-      const jsonData = XLSX.utils.sheet_to_json<SpreadSheetData>(firstSheet);
+      const jsonData = await archiveToJSON(firstSheet);
       const headers = Object.keys(jsonData[0]);
 
       const jsonForm = jsonData.map((row, index) => {
@@ -78,6 +90,8 @@ export const useTableReader = <T extends ZodRawShape>(
         setData(jsonForm);
         onTableData?.(jsonForm);
       }
+
+      setIsLoading(false)
     };
 
     reader.readAsBinaryString(file);
@@ -99,5 +113,6 @@ export const useTableReader = <T extends ZodRawShape>(
     errorIssues,
     renderValue,
     errorMap,
+    isLoading
   };
 };
