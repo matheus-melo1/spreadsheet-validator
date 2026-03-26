@@ -33,7 +33,7 @@ export const TableHeader = memo(function TableHeader({
       }}
     >
       <tr>
-        <th className={styles.th} style={{ minWidth: "64px" }}>
+        <th className={styles.th} style={{ minWidth: "64px", padding: styleTable?.paddingHeader || undefined }}>
           #
         </th>
         {headers.map((header) => {
@@ -52,6 +52,7 @@ export const TableHeader = memo(function TableHeader({
                 borderLeft: styleTable?.borderColor
                   ? `1px solid ${styleTable.borderColor}`
                   : "",
+                padding: styleTable?.paddingHeader || undefined,
               }}
             >
               <div className={styles.th_content}>

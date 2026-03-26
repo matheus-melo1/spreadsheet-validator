@@ -7,4 +7,6 @@ export interface StyleTable {
   tableBorderRadius?: string;
   fontFamilyTable?: string;
   fontFamilyHeader?: string;
+  paddingCell?: string;
+  paddingHeader?: string;
 }

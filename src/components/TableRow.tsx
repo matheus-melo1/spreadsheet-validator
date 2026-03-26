@@ -40,6 +40,7 @@ export const TableRow = memo(function TableRow({
           borderBottom: styleTable?.borderColor
             ? `1px solid ${styleTable.borderColor}`
             : "",
+          padding: styleTable?.paddingCell || undefined,
         }}
       >
         {Number(row.__rowNum__) + 1}
@@ -60,6 +61,7 @@ export const TableRow = memo(function TableRow({
                 ? `1px solid ${styleTable.borderColor}`
                 : "",
               backgroundColor: error ? "rgba(230, 37, 23, 0.3)" : "",
+              padding: styleTable?.paddingCell || undefined,
             }}
           >
             {row[header] != null
