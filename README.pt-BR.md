@@ -4,6 +4,8 @@ Um componente React para validar e exibir arquivos Excel (XLSX) e CSV com valida
 
 [![npm version](https://img.shields.io/npm/v/spreadsheet-validator.svg)](https://www.npmjs.com/package/spreadsheet-validator)
 
+**[Documentacao](https://spreadsheet-validator.vercel.app/)**
+
 > [Read in English](./README.md)
 
 ## Funcionalidades
@@ -18,19 +20,15 @@ Um componente React para validar e exibir arquivos Excel (XLSX) e CSV com valida
 ## Instalacao
 
 ```bash
-npm install spreadsheet-validator
+npm install spreadsheet-validator xlsx zod
 # ou
-pnpm add spreadsheet-validator
+pnpm add spreadsheet-validator xlsx zod
 ```
 
-### Peer Dependencies
-
-| Pacote      | Versao   | Obrigatorio |
-|-------------|----------|-------------|
-| `react`     | >= 18    | Sim         |
-| `react-dom` | >= 18    | Sim         |
-| `zod`       | ^4.3.6   | Sim         |
-| `xlsx`      | ^0.18.5  | Opcional    |
+> `xlsx` e opcional — so e necessario para ler arquivos `.xlsx`. Para uso apenas com CSV, pode pular:
+> ```bash
+> npm install spreadsheet-validator zod
+> ```
 
 ## Inicio Rapido
 
