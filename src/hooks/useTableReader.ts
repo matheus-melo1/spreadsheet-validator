@@ -56,8 +56,6 @@ export const useTableReader = <T extends ZodRawShape>(
     return XLSX.utils.sheet_to_json<SpreadSheetData>(sheet)
   }
 
-  console.log(isLoading)
-
   const onProcessingFile = () => {
     if (!file) return;
 
