@@ -4,7 +4,7 @@ Um componente React para validar e exibir arquivos Excel (XLSX) e CSV com valida
 
 [![npm version](https://img.shields.io/npm/v/spreadsheet-validator.svg)](https://www.npmjs.com/package/spreadsheet-validator)
 
-**[Documentacao](https://spreadsheet-validator.vercel.app/)**
+[![Documentacao](https://img.shields.io/badge/Documentacao-spreadsheet--validator.vercel.app-blue?style=for-the-badge)](https://spreadsheet-validator.vercel.app/)
 
 > [Read in English](./README.md)
 
