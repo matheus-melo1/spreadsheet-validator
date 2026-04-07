@@ -20,7 +20,10 @@ export default defineConfig({
       fileName: (format) => (format === "es" ? "index.mjs" : "index.cjs"),
     },
     rollupOptions: {
-      external: ["react", "react-dom", "xlsx", "zod"],
+      external: (id) =>
+        ["react", "react-dom", "xlsx", "zod"].some(
+          (dep) => id === dep || id.startsWith(dep + "/"),
+        ),
     },
   },
   worker: {
