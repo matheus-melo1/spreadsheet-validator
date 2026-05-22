@@ -5,7 +5,7 @@ export function createWorker() {
   const url = URL.createObjectURL(blob);
   const worker = new Worker(URL.createObjectURL(blob));
 
-  worker.addEventListener("error", URL.revokeObjectURL(url));
+  worker.addEventListener("error", () => URL.revokeObjectURL(url));
 
   return worker;
 }

@@ -1,5 +1,4 @@
 // import z, { ZodObject } from "zod";
-
 declare var self: DedicatedWorkerGlobalScope;
 export {};
 
