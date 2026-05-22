@@ -6,7 +6,8 @@ import { StyleTable } from "../types/styleTable.type";
 import { TableBody } from "./TableBody";
 import { useTableReader } from "../hooks/useTableReader";
 import typeFiles from "../utils/typeFiles";
-import { RowShow } from "../types/enum/rowShowType.enum";
+import { RowItemVisibility as RowItemVisibility } from "../types/enum/rowItemVisibility";
+import { SpreadSheetData } from "../types/spreadSheetData.type";
 
 export interface TableReaderProps<T extends ZodRawShape> {
   file: File | null;
@@ -17,12 +18,12 @@ export interface TableReaderProps<T extends ZodRawShape> {
     message: string;
   }[];
   styleTable?: StyleTable;
-  onTableData?: (data: T[]) => void;
+  onTableData?: (data: SpreadSheetData[]) => void;
   rowHeight?: number;
   overscan?: number;
   containerHeight?: number;
   loadingComponent?: React.ReactNode;
-  rowShowType?: RowShow;
+  rowItemVisibility?: RowItemVisibility;
 }
 
 export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
@@ -35,7 +36,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
     overscan = 5,
     containerHeight = 600,
     loadingComponent,
-    rowShowType = RowShow.All,
+    rowItemVisibility: rowShowType = RowItemVisibility.All,
   } = props;
 
   const { data, headers, dataError, errorMap, renderValue, isLoading } =
@@ -47,9 +48,9 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
   );
 
   const rowsShowType = {
-    [RowShow.All]: [...dataError, ...data],
-    [RowShow.Error]: dataError,
-    [RowShow.Success]: data,
+    [RowItemVisibility.All]: [...dataError, ...data],
+    [RowItemVisibility.Error]: dataError,
+    [RowItemVisibility.Success]: data,
   };
 
   const allRows = useMemo(

@@ -6,7 +6,7 @@ import type { ErrorLog } from "../types/errorLog.type";
 import type { SpreadSheetData } from "../types/spreadSheetData.type";
 import type { StyleTable } from "../types/styleTable.type";
 import { useVirtualScroll } from "../hooks/useVirtualScroll";
-import { RowShow } from "../types/enum/rowShowType.enum";
+import { RowItemVisibility } from "../types/enum/rowItemVisibility";
 
 interface TableBodyProps {
   allRows: SpreadSheetData[];
@@ -24,7 +24,7 @@ interface TableBodyProps {
     header: string,
     type: "visual" | "data",
   ) => string | number | Date;
-  rowShowType: RowShow;
+  rowShowType: RowItemVisibility;
 }
 
 export const TableBody = memo(function TableBody({
@@ -104,7 +104,9 @@ export const TableBody = memo(function TableBody({
                 row={row}
                 headers={headers}
                 rowErrors={rowErrors}
-                isErrorRow={rowShowType == RowShow.Success ? false : isErrorRow}
+                isErrorRow={
+                  rowShowType == RowItemVisibility.Success ? false : isErrorRow
+                }
                 style={{ height: rowHeight }}
                 styleTable={styleTable}
                 renderValue={renderValue}

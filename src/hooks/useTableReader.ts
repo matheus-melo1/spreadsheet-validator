@@ -30,7 +30,11 @@ export const useTableReader = <T extends ZodRawShape>(
   };
 
   const renderValue = useCallback(
-    (val: string | number | undefined, header: string, type: "visual" | "data") => {
+    (
+      val: string | number | undefined,
+      header: string,
+      type: "visual" | "data",
+    ) => {
       const field = schema?.shape[header];
 
       if (field instanceof ZodISODate || field instanceof ZodISODateTime) {
@@ -53,14 +57,14 @@ export const useTableReader = <T extends ZodRawShape>(
   );
 
   const archiveToJSON = async (sheet: XLSX.WorkSheet) => {
-    return XLSX.utils.sheet_to_json<SpreadSheetData>(sheet)
-  }
+    return XLSX.utils.sheet_to_json<SpreadSheetData>(sheet);
+  };
 
   const onProcessingFile = () => {
     if (!file) return;
 
     const reader = new FileReader();
-    setIsLoading(true)
+    setIsLoading(true);
     reader.onload = async (event) => {
       const binaryStr = event.target?.result;
       const workbook = XLSX.read(binaryStr, { type: "binary" });
@@ -71,13 +75,11 @@ export const useTableReader = <T extends ZodRawShape>(
       const headers = Object.keys(jsonData[0]);
 
       const jsonForm = jsonData.map((row, index) => {
-        const mappedRow = { ...row, __rowNum__: index } as SpreadSheetData & T;
+        const mappedRow = { ...row, __rowNum__: index } as SpreadSheetData;
 
         for (const header of headers) {
           const value = row[header];
-          mappedRow[header] = renderValue(value, header, "data") as
-            | string
-            | number;
+          mappedRow[header] = renderValue(value, header, "data");
         }
 
         return mappedRow;
@@ -89,7 +91,7 @@ export const useTableReader = <T extends ZodRawShape>(
         onTableData?.(jsonForm);
       }
 
-      setIsLoading(false)
+      setIsLoading(false);
     };
 
     reader.readAsBinaryString(file);
@@ -111,6 +113,6 @@ export const useTableReader = <T extends ZodRawShape>(
     errorIssues,
     renderValue,
     errorMap,
-    isLoading
+    isLoading,
   };
 };
