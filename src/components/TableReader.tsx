@@ -61,7 +61,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
     overscan = 5,
     containerHeight = 600,
     loadingComponent,
-    rowItemVisibility: rowShowType = RowItemVisibility.All,
+    rowItemVisibility = RowItemVisibility.All,
   } = props;
 
   const { data, headers, dataError, errorMap, renderValue, isLoading } =
@@ -73,7 +73,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
   );
 
   /** Precomputed row groups keyed by visibility mode. */
-  const rowsShowType = {
+  const rowsShowType: Record<RowItemVisibility, SpreadSheetData[]> = {
     [RowItemVisibility.All]: [...dataError, ...data],
     [RowItemVisibility.Error]: dataError,
     [RowItemVisibility.Success]: data,
@@ -81,8 +81,8 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
 
   /** Final row set rendered by the table according to the selected visibility mode. */
   const allRows = useMemo(
-    () => rowsShowType[rowShowType],
-    [dataError, data, rowShowType],
+    () => rowsShowType[rowItemVisibility],
+    [dataError, data, rowItemVisibility],
   );
 
   if (file === null) {
@@ -125,7 +125,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
         overscan={overscan}
         containerHeight={containerHeight}
         renderValue={renderValue}
-        rowItemVisibility={rowShowType}
+        rowItemVisibility={rowItemVisibility}
       />
     </div>
   );
