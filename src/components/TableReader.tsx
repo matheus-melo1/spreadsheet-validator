@@ -6,6 +6,7 @@ import { StyleTable } from "../types/styleTable.type";
 import { TableBody } from "./TableBody";
 import { useTableReader } from "../hooks/useTableReader";
 import typeFiles from "../utils/typeFiles";
+import { RowShow } from "../types/enum/rowShowType.enum";
 
 export interface TableReaderProps<T extends ZodRawShape> {
   file: File | null;
@@ -21,6 +22,7 @@ export interface TableReaderProps<T extends ZodRawShape> {
   overscan?: number;
   containerHeight?: number;
   loadingComponent?: React.ReactNode;
+  rowShowType?: RowShow;
 }
 
 export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
@@ -33,6 +35,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
     overscan = 5,
     containerHeight = 600,
     loadingComponent,
+    rowShowType = RowShow.All,
   } = props;
 
   const { data, headers, dataError, errorMap, renderValue, isLoading } =
@@ -43,7 +46,16 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
     [schema],
   );
 
-  const allRows = useMemo(() => [...dataError, ...data], [dataError, data]);
+  const rowsShowType = {
+    [RowShow.All]: [...dataError, ...data],
+    [RowShow.Error]: dataError,
+    [RowShow.Success]: data,
+  };
+
+  const allRows = useMemo(
+    () => rowsShowType[rowShowType],
+    [dataError, data, rowShowType],
+  );
 
   if (file === null) {
     return <p style={{ color: "black" }}>Select a file</p>;
@@ -52,15 +64,14 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
   if (!typeFiles.includes(file.type)) {
     return (
       <p style={{ color: "black" }}>
-        Invalid file type, only supports{" "} xlsx and csv
+        Invalid file type, only supports xlsx and csv
       </p>
     );
   }
 
   if (loadingComponent && isLoading) {
-    return loadingComponent
+    return loadingComponent;
   }
-
 
   return (
     <div
@@ -86,6 +97,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
         overscan={overscan}
         containerHeight={containerHeight}
         renderValue={renderValue}
+        rowShowType={rowShowType}
       />
     </div>
   );
