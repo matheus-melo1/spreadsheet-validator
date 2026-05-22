@@ -24,7 +24,7 @@ interface TableBodyProps {
     header: string,
     type: "visual" | "data",
   ) => string | number | Date;
-  rowShowType: RowItemVisibility;
+  rowItemVisibility: RowItemVisibility;
 }
 
 export const TableBody = memo(function TableBody({
@@ -39,7 +39,7 @@ export const TableBody = memo(function TableBody({
   overscan,
   containerHeight,
   renderValue,
-  rowShowType,
+  rowItemVisibility: rowItemVisibility,
 }: TableBodyProps) {
   const containerRef = useRef<HTMLDivElement>(null);
 
@@ -105,7 +105,9 @@ export const TableBody = memo(function TableBody({
                 headers={headers}
                 rowErrors={rowErrors}
                 isErrorRow={
-                  rowShowType == RowItemVisibility.Success ? false : isErrorRow
+                  rowItemVisibility == RowItemVisibility.Success
+                    ? false
+                    : isErrorRow
                 }
                 style={{ height: rowHeight }}
                 styleTable={styleTable}

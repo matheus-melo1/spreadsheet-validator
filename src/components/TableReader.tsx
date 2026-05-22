@@ -98,7 +98,7 @@ export function TableReader<T extends ZodRawShape>(props: TableReaderProps<T>) {
         overscan={overscan}
         containerHeight={containerHeight}
         renderValue={renderValue}
-        rowShowType={rowShowType}
+        rowItemVisibility={rowShowType}
       />
     </div>
   );
